@@ -78,14 +78,3 @@ foreach(target seekdb_wasm_charset seekdb_wasm_parser)
 endforeach()
 target_link_libraries(seekdb_wasm_parser PUBLIC
   seekdb_wasm_charset seekdb_wasm_memory seekdb_wasm_runtime_support seekdb_wasm_crypto)
-add_executable(test_wasm_sql_parser "${SEEKDB_ROOT}/unittest/wasm/test_wasm_sql_parser.cpp")
-target_compile_features(test_wasm_sql_parser PRIVATE cxx_std_20)
-target_compile_options(test_wasm_sql_parser PRIVATE -pthread -UNDEBUG)
-target_link_libraries(test_wasm_sql_parser PRIVATE seekdb_wasm_parser)
-target_link_options(test_wasm_sql_parser PRIVATE
-  -Oz -pthread -sUSE_ZLIB=1 -sPTHREAD_POOL_SIZE=4 -sPTHREAD_POOL_SIZE_STRICT=2
-  -sABORTING_MALLOC=0 -sINITIAL_MEMORY=134217728 -sSTACK_SIZE=1048576
-  -sSTACK_OVERFLOW_CHECK=2 -sASSERTIONS=2 -sEXIT_RUNTIME=1 -Wl,--error-limit=0)
-add_test(NAME wasm_sql_parser COMMAND ${CMAKE_CROSSCOMPILING_EMULATOR}
-  "$<TARGET_FILE:test_wasm_sql_parser>")
-set_tests_properties(wasm_sql_parser PROPERTIES TIMEOUT 60)

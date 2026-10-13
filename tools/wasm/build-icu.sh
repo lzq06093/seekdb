@@ -7,7 +7,7 @@ seekdb_prefix="${1:-${seekdb_root}/build_wasm_deps}"
 mkdir -p "${seekdb_prefix}"
 seekdb_prefix="$(cd "${seekdb_prefix}" && pwd)"
 seekdb_version="$(cat "${seekdb_root}/tools/wasm/emscripten-version")"
-if ! emcc --version | head -n 1 | grep -Eq " ${seekdb_version//./\\.}( |$)"; then
+if ! emcc --version | head -n 1 | grep -Eq " ${seekdb_version//./\\.}([ -]|$)"; then
   echo "Activate Emscripten ${seekdb_version} before building Wasm dependencies." >&2
   exit 1
 fi

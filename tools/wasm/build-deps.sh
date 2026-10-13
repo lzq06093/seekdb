@@ -7,7 +7,7 @@ seekdb_prefix="${1:-${seekdb_root}/build_wasm_deps}"
 mkdir -p "${seekdb_prefix}"
 seekdb_prefix="$(cd "${seekdb_prefix}" && pwd)"
 seekdb_version="$(cat "${seekdb_root}/tools/wasm/emscripten-version")"
-if ! emcc --version | head -n 1 | grep -Eq " ${seekdb_version//./\\.}( |$)"; then
+if ! emcc --version | head -n 1 | grep -Eq " ${seekdb_version//./\\.}([ -]|$)"; then
   echo "Activate Emscripten ${seekdb_version} before building Wasm dependencies." >&2
   exit 1
 fi
@@ -45,7 +45,6 @@ CC=emcc AR=emar RANLIB=emranlib perl Configure linux-generic32 \
   -pthread --prefix="${seekdb_prefix}"
 make -j4 build_libs
 make install_dev
-bash "${seekdb_root}/tools/wasm/build-sqlite.sh" "${seekdb_prefix}"
 bash "${seekdb_root}/tools/wasm/build-roaring.sh" "${seekdb_prefix}"
 bash "${seekdb_root}/tools/wasm/build-libxml2.sh" "${seekdb_prefix}"
 bash "${seekdb_root}/tools/wasm/build-icu.sh" "${seekdb_prefix}"

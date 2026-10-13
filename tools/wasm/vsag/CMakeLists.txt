@@ -3,7 +3,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(seekdb_vsag LANGUAGES C CXX)
 if(NOT EMSCRIPTEN)
-  message(FATAL_ERROR "Use the pinned Emscripten SDK for this dependency build")
+  message(FATAL_ERROR "Configure this dependency with the pinned Emscripten emcmake")
 endif()
 set(CMAKE_CXX_STANDARD 20)
 add_compile_options(-pthread -Oz -fexceptions)

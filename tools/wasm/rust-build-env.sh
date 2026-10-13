@@ -5,7 +5,7 @@ mkdir -p "${seekdb_build_dir}"
 seekdb_build_dir="$(cd "${seekdb_build_dir}" && pwd)"
 seekdb_sdk_version="$(cat "${seekdb_root}/tools/wasm/emscripten-version")"
 seekdb_rust_version="$(cat "${seekdb_root}/tools/wasm/rust-toolchain-version")"
-if ! emcc --version | head -n 1 | grep -Eq " ${seekdb_sdk_version//./\\.}( |$)"; then
+if ! emcc --version | head -n 1 | grep -Eq " ${seekdb_sdk_version//./\\.}([ -]|$)"; then
   echo "Activate Emscripten ${seekdb_sdk_version} before building Rust." >&2
   exit 1
 fi

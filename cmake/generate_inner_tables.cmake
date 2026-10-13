@@ -31,7 +31,8 @@ function(seekdb_generate_inner_tables repo output)
   endif()
   if(NOT "${SEEKDB_INNER_TABLE_CURRENT_DIGEST}" STREQUAL "${SEEKDB_INNER_TABLE_DIGEST}" OR
      NOT EXISTS "${output}/share/inner_table/ob_inner_table_schema.h" OR
-     NOT EXISTS "${output}/observer/virtual_table/ob_all_virtual_sqlite_tables.cpp")
+     NOT EXISTS "${output}/share/inner_table/local_table_schema.h" OR
+     NOT EXISTS "${output}/observer/virtual_table/ob_all_virtual_local_tables.cpp")
     execute_process(
       COMMAND "${Python3_EXECUTABLE}" "${SEEKDB_INNER_TABLE_GENERATOR}"
         --def-file "${SEEKDB_INNER_TABLE_DEF}"

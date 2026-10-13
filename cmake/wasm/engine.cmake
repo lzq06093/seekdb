@@ -23,7 +23,9 @@ if(NOT engine_version)
 endif()
 target_compile_definitions(seekdb_wasm_engine_options INTERFACE
   PACKAGE_NAME="seekdb" PACKAGE_VERSION="${engine_version}"
-  PACKAGE_STRING="seekdb ${engine_version} WebAssembly")
+  PACKAGE_STRING="seekdb ${engine_version} WebAssembly"
+  _LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION
+  _XOPEN_SOURCE=700)
 target_compile_features(seekdb_wasm_engine_options INTERFACE cxx_std_20)
 target_compile_options(seekdb_wasm_engine_options INTERFACE
   -pthread -Oz -Wno-register -sUSE_ZLIB=1)
@@ -67,13 +69,37 @@ seekdb_wasm_engine_module(sql SEEKDB_SQL_UNITY SEEKDB_SQL_SIMD_UNITY
   SEEKDB_SQL_STANDALONE SEEKDB_SQL_EXTRA)
 seekdb_wasm_engine_module(storage SEEKDB_STORAGE_UNITY SEEKDB_STORAGE_SIMD_UNITY
   SEEKDB_STORAGE_STANDALONE SEEKDB_STORAGE_EXTRA SEEKDB_STORAGE_TABLET_AUTOINCREMENT_STATE)
+target_compile_definitions(seekdb_wasm_storage PRIVATE OB_BUILD_SYS_VEC_IDX)
 seekdb_wasm_engine_module(share SEEKDB_SHARE_UNITY SEEKDB_SHARE_STANDALONE
   SEEKDB_SHARE_DATUM_STANDALONE)
 seekdb_wasm_engine_module(observer SEEKDB_OBSERVER_UNITY SEEKDB_OBSERVER_STANDALONE
   SEEKDB_OBSERVER_RETRIEVAL_COMPOSITION)
 seekdb_wasm_engine_module(logservice SEEKDB_LOGSERVICE_UNITY)
 seekdb_wasm_engine_module(rootserver SEEKDB_ROOTSERVER_UNITY SEEKDB_ROOTSERVER_STANDALONE)
+# Generate the PL parser in the build tree like the SQL parser, instead of
+# compiling the git-ignored files a native build writes into src/pl/parser.
+set(pl_parser_generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated/pl/parser")
+set(pl_parser_generated_files)
+foreach(name pl_parser_mysql_mode_lex.c pl_parser_mysql_mode_lex.h
+    pl_parser_mysql_mode_tab.c pl_parser_mysql_mode_tab.h)
+  list(APPEND pl_parser_generated_files "${pl_parser_generated_dir}/${name}")
+endforeach()
+add_custom_command(OUTPUT ${pl_parser_generated_files}
+  COMMAND bash "${SEEKDB_ROOT}/tools/bazel_migration/generate_pl_parser.sh"
+    "${SEEKDB_HOST_BISON}" "${SEEKDB_HOST_FLEX}" "${SEEKDB_BISON_DATA}"
+    "${pl_parser_generated_dir}" "${SEEKDB_ROOT}/src/pl/parser"
+  DEPENDS
+    "${SEEKDB_ROOT}/tools/bazel_migration/generate_pl_parser.sh"
+    "${SEEKDB_ROOT}/src/pl/parser/pl_parser_mysql_mode.l"
+    "${SEEKDB_ROOT}/src/pl/parser/pl_parser_mysql_mode.y"
+  VERBATIM)
+list(REMOVE_ITEM SEEKDB_PL_STANDALONE
+  "${SEEKDB_ROOT}/src/pl/parser/pl_parser_mysql_mode_lex.c"
+  "${SEEKDB_ROOT}/src/pl/parser/pl_parser_mysql_mode_tab.c")
+list(APPEND SEEKDB_PL_STANDALONE ${pl_parser_generated_files})
 seekdb_wasm_engine_module(pl SEEKDB_PL_UNITY SEEKDB_PL_STANDALONE)
+# The generated headers must win over stale copies left in src/pl/parser.
+target_include_directories(seekdb_wasm_pl BEFORE PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
 # These extracted modules use one runtime Unity group in the native CMake
 # build (three and two sources, below its batch limit).
 set(SEEKDB_WASM_QUERY_GROUPS runtime)
